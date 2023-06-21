@@ -29,6 +29,7 @@ func InitLogger() {
 		zapcore.NewCore(getEncoder(), getWriteInfoSyncer(), infoLevel),
 		zapcore.NewCore(getEncoder(), getWriteWarnSyncer(), warnLevel),
 		zapcore.NewCore(getEncoder(), zapcore.AddSync(os.Stdout), getLevelEnabler()), // 日志生成到标注输出(控制台)
+		zapcore.NewCore(getEncoder(), zapcore.AddSync(os.Stderr), zapcore.WarnLevel), // 警告级别的日志生成带标准错误(控制台)
 	)
 
 	Logger = zap.New(core, zap.AddCaller()).Sugar()
