@@ -3,6 +3,7 @@ package common
 // 重新构建logger
 
 import (
+	"io"
 	"os"
 	"time"
 
@@ -17,7 +18,7 @@ func init() {
 	InitLogger()
 }
 
-func InitLogger() {
+func NewCore(stdout, stderr io.Writer) zapcore.Core {
 	infoLevel := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
 		return level < zapcore.WarnLevel
 	})
@@ -25,15 +26,29 @@ func InitLogger() {
 		return lvl >= zapcore.WarnLevel
 	})
 
+	/*Info级别以下,Debug 不输出到控制台*/
+	infoEqualLevel := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
+		return level == zapcore.InfoLevel
+	})
+
 	core := zapcore.NewTee(
 		zapcore.NewCore(getEncoder(), getWriteInfoSyncer(), infoLevel),
 		zapcore.NewCore(getEncoder(), getWriteWarnSyncer(), warnLevel),
-		zapcore.NewCore(getEncoder(), zapcore.AddSync(os.Stdout), getLevelEnabler()), // 日志生成到标注输出(控制台)
-		zapcore.NewCore(getEncoder(), zapcore.AddSync(os.Stderr), zapcore.WarnLevel), // 警告级别的日志生成带标准错误(控制台)
+		zapcore.NewCore(getEncoder(), zapcore.AddSync(stdout), infoEqualLevel),    // 日志生成到标注输出(控制台)
+		zapcore.NewCore(getEncoder(), zapcore.AddSync(stderr), zapcore.WarnLevel), // 警告级别的日志生成带标准错误(控制台)
 	)
+	return core
 
+}
+
+func InitLogger() {
+	core := NewCore(os.Stdout, os.Stderr)
 	Logger = zap.New(core, zap.AddCaller()).Sugar()
+}
 
+func CustomLogger(stdout, stderr io.Writer) *zap.SugaredLogger {
+	core := NewCore(stdout, stderr)
+	return zap.New(core, zap.AddCaller()).Sugar()
 }
 
 func getEncoder() zapcore.Encoder {
