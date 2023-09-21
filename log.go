@@ -14,6 +14,16 @@ import (
 
 var Logger *zap.SugaredLogger
 
+var infoFilename = logrotate.DefaultFileName
+var warnFilename = "error.log"
+
+type LoggerParam struct {
+	stdout   io.Writer
+	stderr   io.Writer
+	infoFile string
+	warnFile string
+}
+
 func init() {
 	InitLogger()
 }
@@ -46,7 +56,29 @@ func InitLogger() {
 	Logger = zap.New(core, zap.AddCaller()).Sugar()
 }
 
-func CustomLogger(stdout, stderr io.Writer) *zap.SugaredLogger {
+func CustomLogger(param LoggerParam) *zap.SugaredLogger {
+	if param.infoFile != "" {
+		infoFilename = param.infoFile
+	}
+
+	if param.warnFile != "" {
+		warnFilename = param.warnFile
+	}
+
+	var stdout io.Writer
+	var stderr io.Writer
+	if param.stdout != nil {
+		stdout = param.stdout
+	} else {
+		stdout = os.Stdout
+	}
+
+	if param.stderr != nil {
+		stderr = param.stderr
+	} else {
+		stderr = os.Stderr
+	}
+
 	core := NewCore(stdout, stderr)
 	return zap.New(core, zap.AddCaller()).Sugar()
 }
@@ -63,7 +95,7 @@ func getEncoder() zapcore.Encoder {
 
 func getWriteInfoSyncer() zapcore.WriteSyncer {
 	r, _ := logrotate.NewRotateLog(
-		logrotate.WithRotateFilePath(logrotate.DefaultFilePath, logrotate.DefaultFileName),
+		logrotate.WithRotateFilePath(logrotate.DefaultFilePath, infoFilename),
 		logrotate.WithDeleteExpiredFile(logrotate.MaxAgeQuarter),
 		logrotate.WithSimpleControl(),
 	)
@@ -72,7 +104,7 @@ func getWriteInfoSyncer() zapcore.WriteSyncer {
 
 func getWriteWarnSyncer() zapcore.WriteSyncer {
 	r, _ := logrotate.NewRotateLog(
-		logrotate.WithRotateFilePath(logrotate.DefaultFilePath, "error.log"),
+		logrotate.WithRotateFilePath(logrotate.DefaultFilePath, warnFilename),
 		logrotate.WithDeleteExpiredFile(logrotate.MaxAgeQuarter),
 		logrotate.WithSimpleControl(),
 	)
