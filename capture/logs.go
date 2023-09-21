@@ -23,7 +23,7 @@ type DataLogs interface {
 	WriteStderr(b []byte)
 }
 
-func CaptureLogs(loads ...DataLogs) {
+func CaptureLogs(infoFile, warnFile string, loads ...DataLogs) {
 	stdout := os.Stdout
 	stderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -32,7 +32,13 @@ func CaptureLogs(loads ...DataLogs) {
 	// 自定义logger
 	stdout = w
 	stderr = ew
-	Logger = common.CustomLogger(stdout, stderr)
+	param := common.LoggerParam{
+		Stdout:   stdout,
+		Stderr:   stderr,
+		InfoFile: infoFile,
+		WarnFile: warnFile,
+	}
+	Logger = common.CustomLogger(param)
 
 	// 捕捉stdout
 	go func() {

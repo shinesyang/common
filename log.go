@@ -18,10 +18,10 @@ var infoFilename = logrotate.DefaultFileName
 var warnFilename = "error.log"
 
 type LoggerParam struct {
-	stdout   io.Writer
-	stderr   io.Writer
-	infoFile string
-	warnFile string
+	Stdout   io.Writer
+	Stderr   io.Writer
+	InfoFile string
+	WarnFile string
 }
 
 func init() {
@@ -57,24 +57,24 @@ func InitLogger() {
 }
 
 func CustomLogger(param LoggerParam) *zap.SugaredLogger {
-	if param.infoFile != "" {
-		infoFilename = param.infoFile
+	if param.InfoFile != "" {
+		infoFilename = param.InfoFile
 	}
 
-	if param.warnFile != "" {
-		warnFilename = param.warnFile
+	if param.WarnFile != "" {
+		warnFilename = param.WarnFile
 	}
 
 	var stdout io.Writer
 	var stderr io.Writer
-	if param.stdout != nil {
-		stdout = param.stdout
+	if param.Stdout != nil {
+		stdout = param.Stdout
 	} else {
 		stdout = os.Stdout
 	}
 
-	if param.stderr != nil {
-		stderr = param.stderr
+	if param.Stderr != nil {
+		stderr = param.Stderr
 	} else {
 		stderr = os.Stderr
 	}

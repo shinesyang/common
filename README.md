@@ -22,7 +22,8 @@ capture 基于log.go实现的控制台日志捕捉程序
         }()
         
         loadLogs := capture.NewLoadLogs(logs, marker)
-        capture.CaptureLogs(loadLogs)
+		/*新增自定义捕捉到的日志重写到指定的日志文件内*/
+        capture.CaptureLogs("capturelogs.log","capture_error.log",loadLogs)
         
         // 程序的最后****
         capture.Logger.Info(capture.MarkerString)
